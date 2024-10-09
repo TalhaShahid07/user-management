@@ -1,0 +1,10 @@
+Django==4.2.4               # The main framework version (replace with your version)
+djangorestframework==3.14.0  # For Django REST API functionality
+Pillow==9.4.0                # For image handling in Django (commonly used in projects)
+django-cors-headers==3.14.0  # For handling CORS in APIs
+django-environ==0.10.0       # For environment variable management
+celery==5.3.0                # For background task management
+redis==4.5.0                 # Redis as the message broker for Celery
+django-celery-beat==2.4.0    # To schedule periodic Celery tasks
+djangorestframework-simplejwt==5.2.2  # For JWT authentication
+# psycopg2==2.9.6              # PostgreSQL adapter for Python
