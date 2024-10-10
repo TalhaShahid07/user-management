@@ -196,18 +196,12 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-# CELERY_BEAT_SCHEDULE = {
-#     'generate_registration_report_task': {
-#         'task': 'event_users.tasks.generate_registration_report',
-#         'schedule': timedelta(minutes=5),
-#         'args': (1,),  # Replace '1' with the event_id you want to use for periodic execution
-#     },
-# }
 
 
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    # The console handler sends logs to the terminal
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
@@ -219,7 +213,7 @@ LOGGING = {
             'level': 'INFO',
         },
         # Add your app logger here
-        'event_users': {  # Change 'event_users' to your app name
+        'event_users': {  # 'event_users' the app name for logging 
             'handlers': ['console'],
             'level': 'DEBUG',  # Adjust level to DEBUG for more verbosity
         },
@@ -237,3 +231,19 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'talha.minhaj01@gmail.com'  # Your email address
 EMAIL_HOST_PASSWORD = 'tzfituajfnlxblvr'  # Your Gmail app password or API key
 DEFAULT_FROM_EMAIL = 'Celery<talha.minhaj01@gmail.com>'
+
+
+
+
+
+
+
+
+
+# CELERY_BEAT_SCHEDULE = {
+#     'generate_registration_report_task': {
+#         'task': 'event_users.tasks.generate_registration_report',
+#         'schedule': timedelta(minutes=5),
+#         'args': (1,),  # Replace '1' with the event_id you want to use for periodic execution
+#     },
+# }

@@ -13,7 +13,7 @@ from django.utils.timezone import now
 
 
 
-# Set up logger
+# Set up logger to record information (info) and errors (error) during the execution of tasks.
 logger = logging.getLogger(__name__)
 
 @shared_task(bind=True)
@@ -82,7 +82,7 @@ def send_event_registration_email(recipient_email, event_name):
 @shared_task
 def send_event_reminder():
     """Send reminder emails to attendees 1 day before the event starts."""
-    one_day_ago = now() + timedelta(minutes=2)
+    one_day_ago = now() + timedelta(days=1)
     upcoming_events = Registration.objects.filter(event__start_time__date=one_day_ago)
 
     for registration in upcoming_events:

@@ -1,4 +1,5 @@
 from django.urls import path
+from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     RegisterUserView,
     LoginUserView,
@@ -8,7 +9,7 @@ from .views import (
     AvailableEventsView,
     RegistrationsReportView,
     CapacityStatusView,
-    ReportStatusView,
+    # ReportStatusView,
 )
 
 urlpatterns = [
@@ -38,6 +39,9 @@ urlpatterns = [
     # Check event capacity status
     path('events/<int:event_id>/capacity-status/', CapacityStatusView.as_view(), name='capacity-status'),
 
-    path('report-status/<str:task_id>/', ReportStatusView.as_view(), name='report-status'),  # Add this line
+    # path('report-status/<str:task_id>/', ReportStatusView.as_view(), name='report-status'),  # Add this line
+
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
 ]
 

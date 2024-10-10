@@ -75,7 +75,6 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = CustomUserSerializer
     permission_classes = [AllowAny]  # Allow any user to access user endpoints
 
-
 class IsOrganizerPermission(IsAuthenticated):
     """Custom permission to allow only organizers to perform certain actions."""
     def has_permission(self, request, view):
@@ -137,15 +136,15 @@ class EventViewSet(viewsets.ModelViewSet):
 
         return super().destroy(request, *args, **kwargs)
 
-
     @action(detail=True, methods=['post'], permission_classes=[IsAttendeePermission])
     def register(self, request, pk=None):
         """Attendee registers for an event."""
         event = get_object_or_404(Event, pk=pk)
         user = request.user
 
-        if user.role != 'Attendee':
-            return Response({'detail': 'Only attendees can register for events.'}, status=status.HTTP_403_FORBIDDEN)
+        # Check if the event is in the future
+        if event.start_time <= now():
+            return Response({'detail': 'You cannot register for events that have already started or are in the past.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if Registration.objects.filter(event=event, user=user).exists():
             return Response({'detail': 'You are already registered for this event.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -157,6 +156,7 @@ class EventViewSet(viewsets.ModelViewSet):
         Registration.objects.create(event=event, user=user)
         send_event_registration_email.delay(user.email, event.title)
         return Response({'detail': 'Successfully registered for the event.'}, status=status.HTTP_201_CREATED)
+    
 
     @action(detail=True, methods=['post'], permission_classes=[IsAttendeePermission])
     def check_in(self, request, pk=None):
@@ -174,16 +174,24 @@ class EventViewSet(viewsets.ModelViewSet):
         registration.checked_in = True
         registration.save()
         return Response({'detail': 'Successfully checked in.'}, status=status.HTTP_200_OK)
-
 class AvailableEventsView(APIView):
-    """View for attendees to see available events."""
+    """View for attendees to see available (upcoming) events."""
     permission_classes = [IsAttendeePermission]
 
     def get(self, request):
-        available_events = Event.objects.filter(capacity__gt=0)
-        serializer = EventSerializer(available_events, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        # Get the current time
+        current_time = now()
 
+        # Filter events that have a start_time in the future and have available capacity
+        available_events = Event.objects.filter(start_time__gt=current_time, capacity__gt=0)
+
+        # Serialize the events and return them in the response
+        serializer = EventSerializer(available_events, many=True)
+        
+        if not available_events.exists():
+            return Response({'detail': 'No upcoming events available.'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class RegistrationViewSet(viewsets.ModelViewSet):
@@ -243,8 +251,8 @@ class RegistrationsReportView(APIView):
 
         task = generate_registration_report.delay(event_id)  # Generate the CSV asynchronously
         return Response({
-            'task_id': task.id,
-            'detail': 'The registration report is generated please check thed desired folder'
+            # 'task_id': task.id,
+            'detail': 'The registration report is generated, You can check it in the reports.'
         }, status=status.HTTP_202_ACCEPTED)
 
 
@@ -268,27 +276,96 @@ class CapacityStatusView(APIView):
         }, status=status.HTTP_200_OK)
 
 
-class ReportStatusView(APIView):
-    permission_classes = [IsAuthenticated]
 
-    def get(self, request, task_id):
-        result = AsyncResult(task_id)
 
-        if result.ready():
-            return Response({
-                'status': 'completed',
-                'result': result.result  # This will return the report file path or any other info you want to return
-            }, status=status.HTTP_200_OK)
-        else:
-            return Response({
-                'status': 'pending',
-                'task_id': task_id
-            }, status=status.HTTP_202_ACCEPTED)
+
+
+
+
+
+
+
+# class ReportStatusView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request, task_id):
+#         result = AsyncResult(task_id)
+
+#         if result.ready():
+#             return Response({
+#                 'status': 'completed',
+#                 'result': result.result  # This will return the report file path or any other info you want to return
+#             }, status=status.HTTP_200_OK)
+#         else:
+#             return Response({
+#                 'status': 'pending',
+#                 'task_id': task_id
+#             }, status=status.HTTP_202_ACCEPTED)
+
+
+
+
+
+
+
+# # reister in any event:
+# @action(detail=True, methods=['post'], permission_classes=[IsAttendeePermission])
+#     def register(self, request, pk=None):
+#         """Attendee registers for an event."""
+#         event = get_object_or_404(Event, pk=pk)
+#         user = request.user
+
+#         if user.role != 'Attendee':
+#             return Response({'detail': 'Only attendees can register for events.'}, status=status.HTTP_403_FORBIDDEN)
+
+#         if Registration.objects.filter(event=event, user=user).exists():
+#             return Response({'detail': 'You are already registered for this event.'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         registered_count = Registration.objects.filter(event=event).count()
+#         if registered_count >= event.capacity:
+#             return Response({'detail': 'This event is full.'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         Registration.objects.create(event=event, user=user)
+#         send_event_registration_email.delay(user.email, event.title)
+#         return Response({'detail': 'Successfully registered for the event.'}, status=status.HTTP_201_CREATED)
 
 
 
 
     
+
+#-------------------- # suer user to access the users
+# # 
+# from rest_framework.permissions import IsAdminUser
+
+# class UserViewSet(viewsets.ModelViewSet):
+#     queryset = CustomUser.objects.all()
+#     serializer_class = CustomUserSerializer
+#     permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
+
+#     def get_queryset(self):
+#         # Only superusers can view all users
+#         if self.request.user.is_superuser:
+#             return CustomUser.objects.all()
+#         else:
+#             # Return only the data of the currently logged-in user
+#             return CustomUser.objects.filter(id=self.request.user.id)
+
+ 
+
+
+
+# ----
+# class AvailableEventsView(APIView):
+#     """View for attendees to see available events."""
+#     permission_classes = [IsAttendeePermission]
+
+#     def get(self, request):
+#         available_events = Event.objects.filter(capacity__gt=0)
+#         serializer = EventSerializer(available_events, many=True)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 #---------------------------------------------------
 # class EventViewSet(viewsets.ModelViewSet):
 #     queryset = Event.objects.all()
@@ -356,3 +433,5 @@ class AvailableEventsView(APIView):
 
         return queryset
 #.....................'''
+
+
