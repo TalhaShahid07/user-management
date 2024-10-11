@@ -39,7 +39,7 @@ urlpatterns = [
     # Check event capacity status
     path('events/<int:event_id>/capacity-status/', CapacityStatusView.as_view(), name='capacity-status'),
 
-    # path('report-status/<str:task_id>/', ReportStatusView.as_view(), name='report-status'),  # Add this line
+    # path('report-status/<str:task_id>/', ReportStatusView.as_view(), name='report-status'),  # Add this line to check the status of the code...
 
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 

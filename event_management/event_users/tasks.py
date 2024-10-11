@@ -14,8 +14,10 @@ from django.utils.timezone import now
 
 
 # Set up logger to record information (info) and errors (error) during the execution of tasks.
+# helps in debugging and monitoring the application.
 logger = logging.getLogger(__name__)
 
+# define a task and bind it to the task instance itself.
 @shared_task(bind=True)
 def generate_registration_report(self, event_id):
     logger.info(f"Starting report generation for event_id: {event_id}")
@@ -32,7 +34,7 @@ def generate_registration_report(self, event_id):
     logger.info(f"Found {registrations.count()} registrations for event: {event.title}")
 
     # Initialize the CSV output
-    output = StringIO()
+    output = StringIO()         #create an in-memory file-like object where the CSV data will be stored.
     writer = csv.writer(output)
     writer.writerow(['User ID', 'Username', 'Registration Time', 'Checked In'])
 
@@ -82,6 +84,7 @@ def send_event_registration_email(recipient_email, event_name):
 @shared_task
 def send_event_reminder():
     """Send reminder emails to attendees 1 day before the event starts."""
+
     one_day_ago = now() + timedelta(days=1)
     upcoming_events = Registration.objects.filter(event__start_time__date=one_day_ago)
 
@@ -92,6 +95,14 @@ def send_event_reminder():
                     f"This is a reminder that the event '{registration.event.title}' "
                     f"will take place tomorrow at {registration.event.start_time}.\n\n"
                     f"Best regards,\nYour Event Management Team",
-            from_email='talha.minhaj01@gmail.com',  # Replace with your sender email
+            from_email='talha.minhaj01@gmail.com',  # sender email
             recipient_list=[registration.user.email],
         )
+        
+        
+        
+        
+    # soon = now() + timedelta(minutes=5)
+
+    # # Filter registrations for events starting in the next 5 minutes
+    # upcoming_events = Registration.objects.filter(event__start_time__lte=soon, event__start_time__gt=now())
